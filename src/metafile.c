@@ -945,8 +945,6 @@ gdip_metafile_clone (GpMetafile *metafile, GpMetafile **clonedmetafile)
 	}
 
 	mf->base = *base;
-	GdipFree(base);
-	base = NULL;
 
 	memcpy (&mf->metafile_header, &metafile->metafile_header, sizeof (MetafileHeader));
 	if (metafile->length > 0) {
@@ -1721,8 +1719,7 @@ GdipCreateMetafileFromWmf (HMETAFILE hWmf, BOOL deleteWmf, GDIPCONST WmfPlaceabl
 		if (wmfPlaceableFileHeader) {
 			status = GdipGetMetafileHeaderFromWmf (hWmf, wmfPlaceableFileHeader, &(*metafile)->metafile_header);
 			if (status != Ok) {
-				gdip_metafile_dispose (*metafile);
-				*metafile = NULL;
+				GdipFree (*metafile);
 				return status;
 			}
 		}
@@ -1733,7 +1730,7 @@ GdipCreateMetafileFromWmf (HMETAFILE hWmf, BOOL deleteWmf, GDIPCONST WmfPlaceabl
 	case MetafileTypeEmfPlusOnly:
 	case MetafileTypeEmfPlusDual:
 	default:
-		gdip_metafile_dispose (*metafile);
+		GdipFree (*metafile);
 		*metafile = NULL;
 		return GenericError;
 	}
