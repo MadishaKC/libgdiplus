@@ -136,17 +136,19 @@ gdip_get_image_attribute (GpImageAttributes* attr, ColorAdjustType type)
 }
 
 GpStatus
-gdip_process_bitmap_attributes (GpBitmap *bitmap, GpImageAttributes* attr, GpBitmap **dest_bitmap)
+gdip_process_bitmap_attributes (GpBitmap *bitmap, void **dest, GpImageAttributes* attr, BOOL *allocated)
 {
 	GpStatus status;
 	GpImageAttribute *imgattr, *def;
 	GpImageAttribute *colormap, *gamma, *trans, *cmatrix, *treshold, *cmyk;
-	GpBitmap *bmpdest = NULL;
+	GpBitmap *bmpdest;
 	ARGB color;
 	BYTE *color_p = (BYTE*) &color;
 
-	*dest_bitmap = NULL;
-	if (!bitmap || !attr)
+	*allocated = FALSE;
+	bmpdest = NULL;
+
+	if (!bitmap || !dest || !attr)
 		return Ok;
 
 	imgattr = gdip_get_image_attribute (attr, ColorAdjustTypeBitmap);
@@ -208,7 +210,8 @@ gdip_process_bitmap_attributes (GpBitmap *bitmap, GpImageAttributes* attr, GpBit
 
 		bmpdest->frames[0].count = 1;
 		gdip_bitmap_setactive (bmpdest, NULL, 0);
-		*dest_bitmap = bmpdest;
+		*dest = bmpdest->active_bitmap->scan0;
+		*allocated = TRUE;
 	}
 
 	/*
@@ -354,7 +357,7 @@ gdip_process_bitmap_attributes (GpBitmap *bitmap, GpImageAttributes* attr, GpBit
 	}
 
 	/* Apply Color Matrix */
-	if (!(cmatrix->flags & ImageAttributeFlagsNoOp) && (cmatrix->flags & ImageAttributeFlagsColorMatrixEnabled) && cmatrix->colormatrix != NULL) {
+	if (!(cmatrix->flags & ImageAttributeFlagsNoOp) && cmatrix->flags & ImageAttributeFlagsColorMatrixEnabled && cmatrix->colormatrix) {
 		ActiveBitmapData *data = bmpdest->active_bitmap;
 		BYTE *v = ((BYTE*)data->scan0);
 		ARGB *scan;
@@ -420,6 +423,11 @@ gdip_process_bitmap_attributes (GpBitmap *bitmap, GpImageAttributes* attr, GpBit
 			}
 			v += data->stride;
 		}
+	}
+
+	if (bmpdest != NULL) {
+		bmpdest->active_bitmap->scan0 = NULL;
+		gdip_bitmap_dispose (bmpdest);
 	}
 
 	return Ok;
