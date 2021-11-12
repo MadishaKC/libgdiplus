@@ -96,8 +96,6 @@ test_gdip_clip()
 	// Clear the clipped image (background)
 	C (GdipGraphicsClear (graphics, 0x80ff0000));
 
-	C (GdipDeleteGraphics (graphics));
-
 	// Now onto the second image
 
 	// Get the graphics
@@ -135,10 +133,7 @@ test_gdip_clip()
 
 	C (GdipDeleteRegion (clip));
 	C (GdipDeleteGraphics (graphics));
-	C (GdipDeletePath (path));
-	C (GdipDeletePath (other_path));
 	C (GdipDisposeImage (bitmap));
-	C (GdipDisposeImage (other_bitmap));
 
 	GdipFree (scan0);
 }
@@ -193,7 +188,6 @@ test_gdip_clip_transform()
 
 	C (GdipDeleteRegion (clip));
 	C (GdipDeleteGraphics (graphics));
-	C (GdipDeletePath (path));
 	C (GdipDisposeImage (bitmap));
 
 	GdipFree (scan0);
