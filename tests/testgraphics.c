@@ -1531,7 +1531,6 @@ static void test_rotateWorldTransform ()
 	GdipReleaseDC (graphics, hdc);
 
 	GdipDeleteGraphics (graphics);
-	GdipDisposeImage (image);
 	GdipDeleteRegion (clip);
 	GdipDeleteMatrix (transform);
 	GdipDeleteMatrix (matrix);
@@ -1720,7 +1719,6 @@ static void test_getClip ()
 	GdipDeleteGraphics (graphics);
 	GdipDisposeImage (image);
 	GdipDeleteMatrix (transform);
-	GdipDeleteRegion (clip);
 }
 
 static void test_getClipBounds ()
@@ -2526,14 +2524,13 @@ static void test_setClipGraphics ()
 {
 	GpStatus status;
 	GpImage *image;
-	GpImage *otherImage;
 	GpGraphics *graphics;
 	GpGraphics *otherGraphics;
 	GpRegion *clip;
 	GpRectF bounds;
 
 	graphics = getImageGraphics (&image);
-	otherGraphics = getImageGraphics (&otherImage);
+	otherGraphics = getImageGraphics (&image);
 	GdipCreateRegion (&clip);
 
 	// No transform.
@@ -2619,8 +2616,6 @@ static void test_setClipGraphics ()
 	GdipDeleteGraphics (graphics);
 	GdipDeleteGraphics (otherGraphics);
 	GdipDisposeImage (image);
-	GdipDisposeImage (otherImage);
-	GdipDeleteRegion (clip);
 }
 
 static void test_setClipHrgn ()
@@ -2689,9 +2684,7 @@ static void test_setClipHrgn ()
 	GdipReleaseDC (graphics, hdc);
 
 	GdipDeleteGraphics (graphics);
-	GdipDisposeImage (image);
 	GdipDeleteRegion (region);
-	GdipDeleteRegion ((GpRegion *)hrgn);
 }
 
 static void test_setClipRect ()
@@ -3561,7 +3554,6 @@ static void test_world_transform_respects_page_unit_document ()
 	GdipDisposeImage ((GpImage *)bitmap);
 	GdipDeleteGraphics (graphics);
 	GdipDeleteBrush (brush);
-	GdipDeleteMatrix (matrix);
 }
 
 static void test_world_transform_respects_page_unit_point ()
