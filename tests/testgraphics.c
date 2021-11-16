@@ -1531,7 +1531,6 @@ static void test_rotateWorldTransform ()
 	GdipReleaseDC (graphics, hdc);
 
 	GdipDeleteGraphics (graphics);
-	GdipDisposeImage (image);
 	GdipDeleteRegion (clip);
 	GdipDeleteMatrix (transform);
 	GdipDeleteMatrix (matrix);
@@ -1720,7 +1719,6 @@ static void test_getClip ()
 	GdipDeleteGraphics (graphics);
 	GdipDisposeImage (image);
 	GdipDeleteMatrix (transform);
-	GdipDeleteRegion (clip);
 }
 
 static void test_getClipBounds ()
@@ -2526,14 +2524,13 @@ static void test_setClipGraphics ()
 {
 	GpStatus status;
 	GpImage *image;
-	GpImage *otherImage;
 	GpGraphics *graphics;
 	GpGraphics *otherGraphics;
 	GpRegion *clip;
 	GpRectF bounds;
 
 	graphics = getImageGraphics (&image);
-	otherGraphics = getImageGraphics (&otherImage);
+	otherGraphics = getImageGraphics (&image);
 	GdipCreateRegion (&clip);
 
 	// No transform.
@@ -2619,8 +2616,6 @@ static void test_setClipGraphics ()
 	GdipDeleteGraphics (graphics);
 	GdipDeleteGraphics (otherGraphics);
 	GdipDisposeImage (image);
-	GdipDisposeImage (otherImage);
-	GdipDeleteRegion (clip);
 }
 
 static void test_setClipHrgn ()
@@ -2689,9 +2684,7 @@ static void test_setClipHrgn ()
 	GdipReleaseDC (graphics, hdc);
 
 	GdipDeleteGraphics (graphics);
-	GdipDisposeImage (image);
 	GdipDeleteRegion (region);
-	GdipDeleteRegion ((GpRegion *)hrgn);
 }
 
 static void test_setClipRect ()
@@ -3420,7 +3413,6 @@ static void test_premultiplication ()
 
 	BYTE bpp32ArgbData[] = { 0xFF, 0xFF, 0xFF, 0x80 };
 	ARGB bpp32ArgbPixels[] = { 0x80FFFFFF };
-	ARGB bpp32RgbPixelsPre[] = { 0xFF000000 };
 	ARGB bpp32RgbPixels[] = { 0xFF808080 };
 
 	status = GdipCreateBitmapFromScan0 (1, 1, 4, PixelFormat32bppARGB, bpp32ArgbData, &bitmap);
@@ -3431,7 +3423,6 @@ static void test_premultiplication ()
 	assertEqualInt (status, Ok);
 	status = GdipBitmapSetPixel (bitmapBackground, 0, 0, 0);
 	assertEqualInt (status, Ok);
-	verifyPixels (bitmapBackground, bpp32RgbPixelsPre);
 	GdipGetImageGraphicsContext (bitmapBackground, &graphicsBackground);
 	status = GdipDrawImage (graphicsBackground, (GpImage *)bitmap, 0, 0);
 	assertEqualInt (status, Ok);
@@ -3561,7 +3552,6 @@ static void test_world_transform_respects_page_unit_document ()
 	GdipDisposeImage ((GpImage *)bitmap);
 	GdipDeleteGraphics (graphics);
 	GdipDeleteBrush (brush);
-	GdipDeleteMatrix (matrix);
 }
 
 static void test_world_transform_respects_page_unit_point ()

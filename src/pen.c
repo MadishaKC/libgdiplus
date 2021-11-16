@@ -144,7 +144,7 @@ gdip_pen_setup (GpGraphics *graphics, GpPen *pen)
 {
 	GpStatus status;
 	cairo_matrix_t product;
-	double widthx, widthy;
+	double widthx;
 
 	if (!graphics || !pen)
 		return InvalidParameter;
@@ -179,12 +179,12 @@ gdip_pen_setup (GpGraphics *graphics, GpPen *pen)
 	if (pen == graphics->last_pen && !pen->changed)
 		return Ok;
 
-	widthx = 1.0;
-	widthy = 1.0;
-	cairo_device_to_user_distance (graphics->ct, &widthx, &widthy);
-	widthx = fmax(fabs(widthx), fabs(widthy));
-	
-	if (pen->width > widthx) { /* we draw a pixel wide line if the output width is < 1.0 */
+	if (pen->width < 1.0) { /* we draw a pixel wide line if width is < 1.0 */
+		double widthy = 1.0;
+		widthx = 1.0;
+
+		cairo_device_to_user_distance (graphics->ct, &widthx, &widthy);
+	} else {
 		widthx = (double) pen->width;
 	}
 	cairo_set_line_width (graphics->ct, widthx);
@@ -817,42 +817,30 @@ GdipSetPenDashStyle (GpPen *pen, GpDashStyle dashstyle)
 	if (!pen)
 		return InvalidParameter;
 
-	/* Free old custom dash style if we are going to override it */
-	if (pen->dash_count != 0 && pen->own_dash_array && dashstyle < DashStyleCustom) {
-		GdipFree (pen->dash_array);
-		pen->dash_count = 0;
-		pen->dash_array = NULL;
-	}
-
 	switch (dashstyle) {
 	case DashStyleSolid:
 		pen->dash_array = NULL;
 		pen->dash_count = 0;
-		pen->own_dash_array = FALSE;
 		break;
 
 	case DashStyleDashDot:
 		pen->dash_array = DashDot;
 		pen->dash_count = 4;
-		pen->own_dash_array = FALSE;
 		break;
 
 	case DashStyleDashDotDot:
 		pen->dash_array = DashDotDot;
 		pen->dash_count = 6;
-		pen->own_dash_array = FALSE;
 		break;
 
 	case DashStyleDot:
 		pen->dash_array = Dot;
 		pen->dash_count = 2;
-		pen->own_dash_array = FALSE;
 		break;
 
 	case DashStyleDash:
 		pen->dash_array = Dash;
 		pen->dash_count = 2;
-		pen->own_dash_array = FALSE;
 		break;
 
 	case DashStyleCustom:

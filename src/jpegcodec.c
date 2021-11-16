@@ -520,7 +520,10 @@ gdip_load_jpeg_image_internal (struct jpeg_source_mgr *src, GpImage **image)
 
 	result->active_bitmap->scan0 = destbuf;
 	result->active_bitmap->reserved = GBD_OWN_SCAN0;
-	
+
+	result->surface = cairo_image_surface_create_for_data ((BYTE*)destbuf, result->cairo_format,
+		result->active_bitmap->width, result->active_bitmap->height, stride);
+
 	*image = result;
 	return Ok;
 
@@ -718,8 +721,6 @@ gdip_save_jpeg_image_internal (FILE *fp, PutBytesDelegate putBytesFunc, GpImage 
 	JOCTET		*scanline = NULL;
 	int		need_argb_conversion = 0;
 	GpStatus	status;
-
-	cinfo.mem = NULL;
 
 	/* Verify that we can support this pixel format */
 	switch (image->active_bitmap->pixel_format) {

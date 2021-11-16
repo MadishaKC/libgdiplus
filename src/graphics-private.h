@@ -86,7 +86,6 @@ typedef struct {
 	cairo_matrix_t		matrix;
 	cairo_matrix_t		previous_matrix;
 	GpRegion*		clip;
-	GpRegion		*previous_clip;
 	cairo_matrix_t		clip_matrix;
 	CompositingMode    	composite_mode;
 	CompositingQuality 	composite_quality;
@@ -129,9 +128,7 @@ typedef struct _Graphics {
 	GpMetafile		*metafile;
 	cairo_surface_t		*metasurface;	/* bogus surface to satisfy some API calls */
 	/* common-stuff */
-	GpRegion		*overall_clip;
 	GpRegion*		clip;
-	GpRegion		*previous_clip;
 	GpMatrix*		clip_matrix;
 	GpRect			bounds;
 	GpRect			orig_bounds;
@@ -159,7 +156,6 @@ typedef struct _Graphics {
 float gdip_unit_conversion (Unit from, Unit to, float dpi, GraphicsType type, float nSrc) GDIP_INTERNAL;
 
 void gdip_set_cairo_clipping (GpGraphics *graphics) GDIP_INTERNAL;
-GpStatus gdip_calculate_overall_clipping (GpGraphics *graphics) GDIP_INTERNAL;
 
 GpGraphics* gdip_graphics_new (cairo_surface_t *surface) GDIP_INTERNAL;
 GpGraphics* gdip_metafile_graphics_new (GpMetafile *metafile) GDIP_INTERNAL;
