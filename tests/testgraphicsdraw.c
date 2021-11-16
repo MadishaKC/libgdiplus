@@ -1440,7 +1440,6 @@ static void test_drawCurveI ()
 
 	GdipDeleteGraphics (graphics);
 	GdipDisposeImage (image);
-	GdipDeletePen (pen);
 }
 
 static void test_drawCurve2 ()
@@ -8603,9 +8602,6 @@ static void test_drawImagePointsRect ()
 	status = GdipDrawImagePointsRect (graphics, bitmapImage, negativePoints, 3, 10, 10, 150, 100, UnitPixel, NULL, NULL, NULL);
 	assertEqualInt (status, Ok);
 
-	GdipDeleteGraphics (graphics);
-	GdipDisposeImage (image);
-
 	// Max Positive origin.
 	createImageGraphics (256, 256, &image, &graphics);
 	status = GdipDrawImagePointsRect (graphics, bitmapImage, points, 3, (REAL) GDIPLUS_MAXFLOAT, (REAL) GDIPLUS_MAXFLOAT, 150, 100, UnitPixel, NULL, NULL, NULL);
@@ -9199,9 +9195,6 @@ static void test_drawImagePointsRectI ()
 	createImageGraphics (256, 256, &image, &graphics);
 	status = GdipDrawImagePointsRectI (graphics, bitmapImage, negativePoints, 3, 10, 10, 150, 100, UnitPixel, NULL, NULL, NULL);
 	assertEqualInt (status, Ok);
-
-	GdipDeleteGraphics (graphics);
-	GdipDisposeImage (image);
 
 	// Max Positive origin.
 	createImageGraphics (256, 256, &image, &graphics);
