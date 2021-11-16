@@ -736,13 +736,6 @@ enum fsSelection {
 	fsSelectionOblique        = (1 << 9),
 };
 
-#if defined(PANGO_VERSION_CHECK)
-#if PANGO_VERSION_CHECK(1,44,0)
-#define PANGO_DEPRECATED_FREETYPE_DEPENDENCY
-#endif
-#endif
-
-#if !defined(USE_PANGO_RENDERING) || !defined (PANGO_DEPRECATED_FREETYPE_DEPENDENCY)
 static void
 gdip_get_fontfamily_details_from_freetype (GpFontFamily *family, FT_Face face)
 {
@@ -780,7 +773,6 @@ gdip_get_fontfamily_details_from_freetype (GpFontFamily *family, FT_Face face)
 	
 	family->height = face->units_per_EM;
 }
-#endif
 
 #ifdef USE_PANGO_RENDERING
 
@@ -804,21 +796,6 @@ gdip_get_pango_font_description (GpFont *font)
 	return font->pango;
 }
 
-#ifdef PANGO_DEPRECATED_FREETYPE_DEPENDENCY
-static void
-gdip_get_fontfamily_details_from_harfbuzz (GpFontFamily *family, hb_font_t *font)
-{
-	hb_font_extents_t font_extents;
-	hb_font_get_extents_for_direction (font, HB_DIRECTION_LTR, &font_extents);
-
-	family->celldescent = -font_extents.descender;
-	family->cellascent = font_extents.ascender;
-	family->linespacing = family->cellascent + family->celldescent + font_extents.line_gap;
-
-	family->height = hb_face_get_upem (hb_font_get_face (font));
-}
-#endif
-
 static GpStatus
 gdip_get_fontfamily_details (GpFontFamily *family, FontStyle style)
 {
@@ -827,7 +804,6 @@ gdip_get_fontfamily_details (GpFontFamily *family, FontStyle style)
 	if (status != Ok)
 		return status;
 
-	status = FontFamilyNotFound;
 	PangoFontMap *map = family->collection->pango_font_map;
 #if PANGO_VERSION_CHECK(1,22,0)
 	PangoContext *context = pango_font_map_create_context (PANGO_FONT_MAP (map));
@@ -836,25 +812,15 @@ gdip_get_fontfamily_details (GpFontFamily *family, FontStyle style)
 #endif
 	PangoFont *pf = pango_font_map_load_font (map, context, gdip_get_pango_font_description (font));
 
-	if (pf) {
-#ifdef PANGO_DEPRECATED_FREETYPE_DEPENDENCY
-		hb_font_t *hb_font = pango_font_get_hb_font (pf);
-
-		if (hb_font) {
-			gdip_get_fontfamily_details_from_harfbuzz (family, hb_font);
-			status = Ok;
-		}
-#else
-		FT_Face face = pango_fc_font_lock_face ((PangoFcFont*)pf);
-		if (face) {
-			gdip_get_fontfamily_details_from_freetype (family, face);
-			pango_fc_font_unlock_face ((PangoFcFont*)pf);
-			status = Ok;
-		}
-#endif
-		g_object_unref (pf);
+	FT_Face face = pango_fc_font_lock_face ((PangoFcFont*)pf);
+	if (face) {
+		gdip_get_fontfamily_details_from_freetype (family, face);
+		pango_fc_font_unlock_face ((PangoFcFont*)pf);
+	} else {
+		status = FontFamilyNotFound;
 	}
 
+	g_object_unref (pf);
 	g_object_unref (context);
 
 	GdipDeleteFont (font);
