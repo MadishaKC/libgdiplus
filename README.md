@@ -4,7 +4,7 @@ This is part of the [Mono project](http://www.mono-project.com/).
 
 Build status:
 
-[![Build Status](https://dnceng.visualstudio.com/public/_apis/build/status/mono/mono-libgdiplus-ci?branchName=master)](https://dnceng.visualstudio.com/public/_build/latest?definitionId=617&branchName=master)
+[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/mono/mono-libgdiplus-ci?branchName=main)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=617&branchName=main)
 
 ### Requirements:
 
@@ -22,9 +22,9 @@ On **Debian-based Linux distributions** you can use `apt-get` to install the dep
 On **Windows** you can use [Vcpkg](https://github.com/Microsoft/vcpkg) to install the dependencies. Run the following commands from the root of the repository from an admin command prompt:
 
 	bootstrap-vcpkg.bat
+	vcpkg.exe install giflib libjpeg-turbo libpng cairo glib tiff libexif pango --triplet x86-windows
+	vcpkg.exe install giflib libjpeg-turbo libpng cairo glib tiff libexif pango --triplet x64-windows
 	vcpkg.exe integrate install
-	vcpkg.exe install giflib libjpeg-turbo libpng cairo glib tiff libexif glib pango --triplet x86-windows
-	vcpkg.exe install giflib libjpeg-turbo libpng cairo glib tiff libexif glib pango --triplet x64-windows
 
 ### Build instructions
 
@@ -59,8 +59,7 @@ To run the tests with Clang sanitizers, run the following command from the root 
 To run the unit tests with leak sanitizers, run the following command from the root of the repository:
 
 	./autogen.sh --enable-asan
-	export ASAN_OPTIONS=detect_leaks=1
-	export ASAN_OPTIONS=fast_unwind_on_malloc=0
+	export ASAN_OPTIONS=detect_leaks=1:fast_unwind_on_malloc=0
 	export LSAN_OPTIONS=suppressions=lsansuppressions.txt
 	make check
 
