@@ -188,8 +188,8 @@ gdip_bitmap_fill_info_header (GpBitmap *bitmap, PBITMAPINFOHEADER bmi)
 	memset (bmi, 0, sizeof (BITMAPINFOHEADER));
 #ifdef WORDS_BIGENDIAN
 	bmi->biSize = GUINT32_FROM_LE (sizeof (BITMAPINFOHEADER));
-	bmi->biWidth = GULONG_FROM_LE (bitmap->active_bitmap->width);
-	bmi->biHeight = GULONG_FROM_LE (bitmap->active_bitmap->height);
+	bmi->biWidth = GUINT32_FROM_LE (bitmap->active_bitmap->width);
+	bmi->biHeight = GUINT32_FROM_LE (bitmap->active_bitmap->height);
 	bmi->biPlanes = GUINT16_FROM_LE (1);
 	if (format != PixelFormat24bppRGB)
 		bmi->biBitCount = GUINT16_FROM_LE (gdip_get_pixel_format_bpp (bitmap->active_bitmap->pixel_format));
@@ -197,8 +197,8 @@ gdip_bitmap_fill_info_header (GpBitmap *bitmap, PBITMAPINFOHEADER bmi)
 		bmi->biBitCount = GUINT16_FROM_LE (24);
 	bmi->biCompression = GUINT32_FROM_LE (BI_RGB);
 	bmi->biSizeImage =  GUINT32_FROM_LE (0); /* Many tools expect this may be set to zero for BI_RGB bitmaps */
-	bmi->biXPelsPerMeter = GULONG_FROM_LE ((int) (0.5f + ((gdip_get_display_dpi() * 3937) / 100)));
-	bmi->biYPelsPerMeter = GULONG_FROM_LE ((int) (0.5f + ((gdip_get_display_dpi() * 3937) / 100))); /* 1 meter is = 39.37 */       
+	bmi->biXPelsPerMeter = GUINT32_FROM_LE ((int) (0.5f + ((gdip_get_display_dpi() * 3937) / 100)));
+	bmi->biYPelsPerMeter = GUINT32_FROM_LE ((int) (0.5f + ((gdip_get_display_dpi() * 3937) / 100))); /* 1 meter is = 39.37 */
 #else
 	bmi->biSize = sizeof (BITMAPINFOHEADER);
 	bmi->biWidth = bitmap->active_bitmap->width;
@@ -410,7 +410,7 @@ gdip_setpixel_32bppARGB (BYTE *scan, INT x, BYTE a, BYTE r, BYTE g, BYTE b)
 ARGB
 gdip_getpixel_16bppRGB555 (BYTE *scan, INT x)
 {
-	WORD pixel = ((WORD *) scan)[x];
+	WORD pixel = (WORD)scan[2*x] | ((WORD)scan[2*x+1] << 8);
 	return ((pixel & 0x1F) >> 2) | 8 * ((pixel & 0x1F) | 8 * (((((pixel >> 5) & 0x1F) | (((pixel >> 10) & 0x1C) << 8)) & 0xFFFFFFFC) | 32 * (((pixel >> 5) & 0x1F) | ((((pixel >> 10) & 0x1F) | 0xFFFFFFE0) << 8))));
 }
 
@@ -418,7 +418,7 @@ gdip_getpixel_16bppRGB555 (BYTE *scan, INT x)
 ARGB
 gdip_getpixel_16bppRGB565 (BYTE *scan, INT x)
 {
-	WORD pixel = ((WORD *) scan)[x];
+	WORD pixel = (WORD)scan[2*x] | ((WORD)scan[2*x+1] << 8);
 	return ((pixel & 0x1F) >> 2) | 8 * ((pixel & 0x1F) | 2 * (((((pixel >> 5) & 0x3F) | (((pixel >> 11) & 0xFFFFFFFC) << 10)) & 0xFFFFFFF0) | ((((pixel >> 5) & 0x3F) | ((((pixel >> 11)) | 0xFFFFFFE0) << 9)) << 6)));
 }
 

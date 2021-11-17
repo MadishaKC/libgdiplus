@@ -28,13 +28,22 @@
 #include "win32-private.h"
 #endif
 
-#include <cairo-features.h>
+#include <cairo/cairo-features.h>
 #include "gdiplus-private.h"
 #include "font-private.h"
 #include "fontcollection-private.h"
 #include "fontfamily-private.h"
 #include "general-private.h"
 #include "graphics-private.h"
+
+#ifdef USE_PANGO_RENDERING
+#if defined(PANGO_VERSION_CHECK)
+#if PANGO_VERSION_CHECK(1,44,0)
+#define PANGO_DEPRECATED_FREETYPE_DEPENDENCY
+#include <hb-ot.h>
+#endif
+#endif
+#endif
 
 /* Generic fonts families */
 #if GLIB_CHECK_VERSION(2,32,0)
@@ -234,7 +243,7 @@ GdipPrivateAddFontFile (GpFontCollection *fontCollection, GDIPCONST WCHAR *filen
 
 	fclose (fileHandle);
 	FcConfigAppFontAddFile (fontCollection->config, file);
-    
+
 	GdipFree (file);
 	return Ok;
 }
@@ -326,8 +335,8 @@ gdip_createPrivateFontSet (GpFontCollection *font_collection)
 {
 	FcObjectSet *os = FcObjectSetBuild (FC_FAMILY, FC_FOUNDRY, FC_FILE, NULL);
 	FcPattern *pat = FcPatternCreate ();
-	FcFontSet *col =  FcFontList (font_collection->config, pat, os);
-    
+	FcFontSet *col = FcFontList (font_collection->config, pat, os);
+
 	if (font_collection->fontset)
 		FcFontSetDestroy (font_collection->fontset);
 
@@ -525,7 +534,14 @@ gdip_font_clear_pattern_cache (void)
 	if (patterns_hashtable) {
 		g_hash_table_foreach_remove (patterns_hashtable, free_cached_pattern, NULL);
 		g_hash_table_destroy (patterns_hashtable);
+		patterns_hashtable = NULL;
 	}
+	familySerif = NULL;
+	familySansSerif = NULL;
+	familyMonospace = NULL;
+	ref_familySerif = 0;
+	ref_familySansSerif = 0;
+	ref_familyMonospace = 0;
 #if GLIB_CHECK_VERSION(2,32,0)
 	g_mutex_unlock (&patterns_mutex);
 #else
@@ -736,12 +752,6 @@ enum fsSelection {
 	fsSelectionOblique        = (1 << 9),
 };
 
-#if defined(PANGO_VERSION_CHECK)
-#if PANGO_VERSION_CHECK(1,44,0)
-#define PANGO_DEPRECATED_FREETYPE_DEPENDENCY
-#endif
-#endif
-
 #if !defined(USE_PANGO_RENDERING) || !defined (PANGO_DEPRECATED_FREETYPE_DEPENDENCY)
 static void
 gdip_get_fontfamily_details_from_freetype (GpFontFamily *family, FT_Face face)
@@ -808,14 +818,33 @@ gdip_get_pango_font_description (GpFont *font)
 static void
 gdip_get_fontfamily_details_from_harfbuzz (GpFontFamily *family, hb_font_t *font)
 {
+	hb_font_t *subfont;
 	hb_font_extents_t font_extents;
-	hb_font_get_extents_for_direction (font, HB_DIRECTION_LTR, &font_extents);
+	hb_face_t *face;
+	hb_position_t position;
 
-	family->celldescent = -font_extents.descender;
-	family->cellascent = font_extents.ascender;
-	family->linespacing = family->cellascent + family->celldescent + font_extents.line_gap;
+	face = hb_font_get_face (font);
+	family->height = hb_face_get_upem (face);
 
-	family->height = hb_face_get_upem (hb_font_get_face (font));
+	subfont = hb_font_create (face);
+
+	hb_font_set_scale (subfont, family->height, family->height);
+	hb_font_get_h_extents (subfont, &font_extents);
+
+	family->linespacing = font_extents.line_gap + font_extents.ascender - font_extents.descender;
+
+	if (hb_ot_metrics_get_position (subfont, HB_OT_METRICS_TAG_HORIZONTAL_CLIPPING_ASCENT, &position)) {
+		family->cellascent = position;
+	} else {
+		family->cellascent = font_extents.ascender;
+	}
+	if (hb_ot_metrics_get_position (subfont, HB_OT_METRICS_TAG_HORIZONTAL_CLIPPING_DESCENT, &position)) {
+		family->celldescent = position;
+	} else {
+		family->celldescent = -font_extents.descender;
+	}
+
+	hb_font_destroy (subfont);
 }
 #endif
 
