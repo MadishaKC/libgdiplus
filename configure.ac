@@ -9,6 +9,7 @@ AC_CANONICAL_HOST
 AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_HEADERS([config.h])
 AM_MAINTAINER_MODE
+AC_PROG_CXX
 AM_PROG_LIBTOOL
 
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
@@ -23,7 +24,14 @@ GLIB_REQUIRED_VERSION="2.2.3"
 PKG_CHECK_MODULES(BASE_DEPENDENCIES, glib-2.0 >= $GLIB_REQUIRED_VERSION)
 
 GDIPLUS_LIBS="`$PKG_CONFIG --libs glib-2.0 `"
-GDIPLUS_CFLAGS="`$PKG_CONFIG --cflags glib-2.0 `"
+GDIPLUS_INCLUDES="`$PKG_CONFIG --cflags-only-I glib-2.0 `"
+GDIPLUS_CFLAGS="$GDIPLUS_INCLUDES `$PKG_CONFIG --cflags-only-other glib-2.0 `"
+
+AC_PATH_PROG(CMAKE, [cmake], [no], [$PATH:/Applications/CMake.app/Contents/bin:/usr/local/bin])
+if test "x$CMAKE" = "xno"; then
+  AC_MSG_WARN([*** cmake not found, won't build googletest-based tests.])
+fi
+AM_CONDITIONAL(HAVE_CMAKE, [test x$CMAKE != "xno"])
 
 CAIRO_REQUIRED_VERSION="1.6.4"
 PKG_CHECK_MODULES(CAIRO, cairo >= $CAIRO_REQUIRED_VERSION)
@@ -42,7 +50,7 @@ fi
 AC_ARG_ENABLE(asan, AS_HELP_STRING([--enable-asan],[Enable address sanitizer.]),[asan=yes],[asan=no])
 
 if test $asan = "yes"; then
-  GDIPLUS_CFLAGS="$GDIPLUS_CFLAGS -fsanitize=address,signed-integer-overflow,undefined -g -O1"
+  GDIPLUS_CFLAGS="$GDIPLUS_CFLAGS -fsanitize=address,signed-integer-overflow,undefined -g -O1 -fno-omit-frame-pointer"
   LDFLAGS="$LDFLAGS -fsanitize=address,signed-integer-overflow,undefined"
 fi
 
@@ -53,9 +61,9 @@ if test $coverage = "yes"; then
   LDFLAGS="$LDFLAGS --coverage"
 fi
 
-CAIRO_LIBS="`pkg-config --libs cairo `"
-CAIRO_CFLAGS="`pkg-config --cflags cairo `"
-cairo_info="`pkg-config --modversion cairo ` (system)"
+CAIRO_LIBS="`$PKG_CONFIG --libs cairo `"
+CAIRO_CFLAGS="`$PKG_CONFIG --cflags cairo `"
+cairo_info="`$PKG_CONFIG --modversion cairo ` (system)"
 GDIPLUS_PKG_REQ="cairo"
 
 PANGO_REQUIRED_VERSION="1.40.14"
@@ -67,8 +75,8 @@ if test $text_v = "default"; then
 	  [text_v=pango], [text_v=cairo])
 fi
 if test $text_v = "pango"; then
-	PANGO_LIBS="`pkg-config --libs pangocairo `"
-	PANGO_CFLAGS="`pkg-config --cflags pangocairo `"
+	PANGO_LIBS="`$PKG_CONFIG --libs pangocairo `"
+	PANGO_CFLAGS="`$PKG_CONFIG --cflags pangocairo `"
 	AC_DEFINE(USE_PANGO_RENDERING,1,[Use Pango to measure and draw text])
 	GDIPLUS_PKG_REQ="$GDIPLUS_PKG_REQ pangocairo-1.0"
 fi
@@ -292,6 +300,7 @@ if test x$JPEG != x; then
 else
   jpeg_ok="no (Get it from http://freshmeat.net/projects/libjpeg)"
 fi
+AM_CONDITIONAL(HAVE_LIBJPEG, test x$JPEG != x)
 
 dnl Test for libtiff
 AC_ARG_WITH([libtiff],
@@ -327,6 +336,7 @@ if test x$TIFF != x; then
 else
   tiff_ok="no (Get it from http://www.libtiff.org/)"
 fi
+AM_CONDITIONAL(HAVE_LIBTIFF, test x$TIFF != x)
 
 dnl Test for libgif or libungif
 AC_ARG_WITH([libgif],
@@ -486,6 +496,7 @@ GDIPLUS_PKG_CFLAGS="$GDIPLUS_CFLAGS"
  
 AC_SUBST(GDIPLUS_LIBS)
 AC_SUBST(GDIPLUS_CFLAGS)
+AC_SUBST(GDIPLUS_INCLUDES)
 AC_SUBST(GDIPLUS_PKG_LIBS)
 AC_SUBST(GDIPLUS_PKG_CFLAGS)
 AC_SUBST(GDIPLUS_PKG_REQ)

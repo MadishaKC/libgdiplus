@@ -4,11 +4,7 @@ This is part of the [Mono project](http://www.mono-project.com/).
 
 Build status:
 
-|    |   |
-|----|---|
-| Travis (Linux/OSX) | [![Travis Build Status](https://travis-ci.org/mono/libgdiplus.svg?branch=master)](https://travis-ci.org/mono/libgdiplus)|
-| Jenkins (Linux)    | [![Jenkins Linux Build Status](https://jenkins.mono-project.com/job/test-libgdiplus-mainline/badge/icon)](https://jenkins.mono-project.com/job/test-libgdiplus-mainline) |
-| Jenkins (Windows)  | [![Jenkins Windows Build Status](https://jenkins.mono-project.com/job/test-libgdiplus-mainline-windows/badge/icon)](https://jenkins.mono-project.com/job/test-libgdiplus-mainline-windows) |
+[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/mono/mono-libgdiplus-ci?branchName=main)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=617&branchName=main)
 
 ### Requirements:
 
@@ -58,6 +54,13 @@ Run the following command from the root of the repository:
 To run the tests with Clang sanitizers, run the following command from the root of the repository:
 
 	./autogen.sh --enable-asan
+	make check
+
+To run the unit tests with leak sanitizers, run the following command from the root of the repository:
+
+	./autogen.sh --enable-asan
+	export ASAN_OPTIONS=detect_leaks=1:fast_unwind_on_malloc=0
+	export LSAN_OPTIONS=suppressions=lsansuppressions.txt
 	make check
 
 ### Code coverage

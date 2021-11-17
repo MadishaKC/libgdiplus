@@ -8,7 +8,7 @@ AM_CPPFLAGS =					\
 	-I$(top_srcdir)/src			\
 	$(GDIPLUS_CFLAGS)
 
-DEPS =						\
+TEST_DEPS =						\
 	$(top_builddir)/src/libgdiplus.la
 
 
@@ -35,14 +35,21 @@ noinst_PROGRAMS =			\
 	testhatchbrush \
 	testicocodec \
 	testimageattributes \
-	testjpegcodec testlineargradientbrush \
+	testlineargradientbrush \
 	testmatrix testmetafile testpathgradientbrush \
 	testpen testpng testpngcodec testregion testreversepath testsolidbrush \
 	teststringformat \
 	testtext \
 	testtexturebrush \
-	testtiffcodec \
 	testwmfcodec
+
+if HAVE_LIBJPEG
+noinst_PROGRAMS += testjpegcodec
+endif HAVE_LIBJPEG
+
+if HAVE_LIBTIFF
+noinst_PROGRAMS += testtiffcodec
+endif HAVE_LIBTIFF
 
 #if HAVE_X11
 #noinst_PROGRAMS += testgdi
@@ -321,6 +328,7 @@ EXTRA_DIST =			\
 	test.ttf \
 	test.wmf \
 	testhelpers.h \
+	lsansuppressions.txt \
 	$(NULL)
 
 #	$(testgdi_SOURCES)
@@ -346,7 +354,6 @@ TESTS = \
 	testhatchbrush \
 	testicocodec \
 	testimageattributes \
-	testjpegcodec \
 	testlineargradientbrush \
 	testmatrix \
 	testmetafile \
@@ -360,10 +367,42 @@ TESTS = \
 	teststringformat \
 	testtexturebrush \
 	testtext \
-	testtiffcodec \
 	testwmfcodec \
 	$(NULL)
 
+if HAVE_LIBJPEG
+TESTS += testjpegcodec
+endif HAVE_LIBJPEG
+
+if HAVE_LIBTIFF
+TESTS += testtiffcodec
+endif HAVE_LIBTIFF
+
 if HAVE_X11
 # TESTS += testgdi
+endif
+
+if HAVE_CMAKE
+
+GTEST_BUILDDIR := $(top_builddir)/gtest_build
+GTEST_LIBS := $(GTEST_BUILDDIR)/lib/libgtest.a $(GTEST_BUILDDIR)/lib/libgtest_main.a
+$(GTEST_BUILDDIR):
+	mkdir -p $(GTEST_BUILDDIR)
+
+$(GTEST_BUILDDIR)/.stamp-gtest: | $(GTEST_BUILDDIR)
+	cd $(GTEST_BUILDDIR) && $(CMAKE) . $(top_srcdir)/external/googletest && $(MAKE)
+	touch $@
+
+$(GTEST_LIBS): $(GTEST_BUILDDIR)/.stamp-gtest
+
+gtest_SOURCES = gtest.cpp
+gtest_DEPENDENCIES = $(TEST_DEPS) $(GTEST_LIBS)
+gtest_LDADD = $(LDADDS) $(GTEST_LIBS)
+gtest_CPPFLAGS = -pthread -std=c++11 -I$(top_srcdir)/external/googletest/googletest/include -I$(top_srcdir)/src $(GDIPLUS_INCLUDES)
+
+noinst_PROGRAMS += gtest
+
+run-gtest: gtest
+	./gtest --gtest_output=xml:TestResult.xml
+
 endif

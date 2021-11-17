@@ -866,7 +866,9 @@ gdip_combine_exclude (GpRegion *region, GpRectF *rtrg, int cntt)
 			if (alltrgrects) {
 				GdipFree (alltrgrects);
 			}
-
+			if (allsrcrects) {
+				GdipFree(allsrcrects);
+			}
 			return status;
 		}
 	}
@@ -1500,6 +1502,7 @@ gdip_combine_exclude_from_infinite (GpRegion *region, GpPath *path)
 		region->tree->path = region_path;
 		return FALSE;
 	}
+	GdipDeletePath (region_path);
 	return TRUE;
 }
 
@@ -2106,7 +2109,7 @@ GpStatus WINGDIPAPI
 GdipGetRegionScansI (GpRegion *region, GpRect *rects, INT *count, GpMatrix *matrix)
 {
 	GpStatus status;
-	GpRectF *rectsF;
+	GpRectF *rectsF = NULL;
 	UINT scansCount;
 
 	if (!region || !count || !matrix)
@@ -2125,14 +2128,20 @@ GdipGetRegionScansI (GpRegion *region, GpRect *rects, INT *count, GpMatrix *matr
 	}
 
 	status = GdipGetRegionScans (region, rectsF, count, matrix);
-	if (status != Ok)
+	if (status != Ok) {
+		if (rectsF)
+			free(rectsF);
 		return status;
+	}
 		
 	if (rects) {
 		for (int i = 0; i < scansCount; i++)
 			gdip_Rect_from_RectF (&rectsF[i], &rects[i]);
 	}
 
+	if (rectsF)
+		free(rectsF);
+	
 	return Ok;
 }
 
