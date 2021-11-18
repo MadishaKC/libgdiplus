@@ -1,4 +1,4 @@
-AC_INIT(libgdiplus, [6.1],
+AC_INIT(libgdiplus, [6.2],
 	[https://github.com/mono/mono/issues/new])
 
 AC_CONFIG_SRCDIR([README.md])
@@ -6,7 +6,7 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST
 
-AM_INIT_AUTOMAKE([foreign])
+AM_INIT_AUTOMAKE([foreign tar-ustar])
 AC_CONFIG_HEADERS([config.h])
 AM_MAINTAINER_MODE
 AC_PROG_CXX

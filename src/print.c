@@ -23,12 +23,12 @@
  *   Sebastien Pouliot  <sebastien@ximian.com>
  */
 
-#include <cairo-features.h>
+#include <cairo/cairo-features.h>
 
 #ifdef CAIRO_HAS_PS_SURFACE
 
 #include "graphics-private.h"
-#include <cairo-ps.h>
+#include <cairo/cairo-ps.h>
 
 /*
  * NOTE: The functions in this file aren't part of GDI+ and can only be called 
